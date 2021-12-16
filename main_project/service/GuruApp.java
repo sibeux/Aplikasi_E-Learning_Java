@@ -52,14 +52,14 @@ public class GuruApp {
                     res.getString("jurusan"),
                     res.getString("category"),
                     String.valueOf(SiswaRepoImpl.getSiswaByKelas(res.getString("category"))));
-                    dummy = res.getString("category"); // kenapa kelasnya muncuk 2 kali
+                    dummy = res.getString("category"); 
                     dictionary.put(x, res.getString("category"));
                     x++;
                 }
             }
 
             if (x-1 == 0){
-                prettyTable.addRow("--","--","--","--");
+                prettyTable.addRow("--","--","--","--","--");
                 System.out.println(prettyTable);
                 System.out.print("\nBelum ada tugas yang diberikan! Klik enter untuk kembali! ");
                 new ConfirmUtil();
@@ -90,12 +90,8 @@ public class GuruApp {
             ("jdbc:postgresql://localhost:5432/School", "postgres", "sibeHBQ342169");
             Statement statement = con.createStatement();
             ResultSet res = statement.executeQuery(
-                "select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,"+
-            " t.urutan, t.id_mapel, t.category, s.nama "
-            +"from status_tugas as st"+
-            " join tugas t on st.id_tugas = t.id_tugas join siswa s on t.category = s.category "+  
-            "where s.category = '"+kategori+"' and t.id_mapel='"+
-            GuruHomeView.getIdMapelByGuru(username)+"'");
+                "SELECT * from tugas where category = '"+kategori
+                +"' and id_mapel = '"+GuruHomeView.getIdMapelByGuru(username)+"'");
             PrettyTable prettyTable = new PrettyTable("No", "Jenis", "Nama Tugas", "Status");
 
             var no = 1;
@@ -104,8 +100,8 @@ public class GuruApp {
             while(res.next()){
                 prettyTable.addRow(String.valueOf(no),"Tugas ke-"+
                 res.getString("urutan"),res.getString("nama_tugas").toUpperCase(),
-                countKerjakanNotKerjakan(kategori)[index]+" (Selesai) / "+
-                countKerjakanNotKerjakan(kategori)[index+1]+" (Belum Dikerjakan)");
+                countKerjakan(kategori, "true", no)+" (Selesai) / "+
+                countKerjakan(kategori, "false", no)+" (Belum Dikerjakan)");
                 category =  res.getString("category");
                 no++;
                 index+=2;
@@ -136,12 +132,9 @@ public class GuruApp {
             ("jdbc:postgresql://localhost:5432/School", "postgres", "sibeHBQ342169");
             Statement statement = con.createStatement();
             ResultSet res = statement.executeQuery(
-                "select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,"+
-            " t.urutan, t.id_mapel, t.category, s.nama "
-            +"from status_tugas as st"+
-            " join tugas t on st.id_tugas = t.id_tugas join siswa s on t.category = s.category "+  
-            "where s.category = '"+kategori+"' and t.id_mapel='"+
-            GuruHomeView.getIdMapelByGuru(username)+"'");
+                "select count(*) as jumlah from tugas where id_mapel='"+
+                GuruHomeView.getIdMapelByGuru(username)+
+                "' and category='"+kategori+"'");
             
             int[] urutan = new int[countKerjakan(kategori)];
             var no = 0;
@@ -149,7 +142,9 @@ public class GuruApp {
             while(res.next()){
                 urutan[no] = countKerjakan(kategori, "true", urtu);
                 urutan[no+1] = countKerjakan(kategori, "false", urtu);
-                no+=2;
+                System.out.println(no+" oke kel");
+                System.out.println(no+1+" oke kel");
+                no++;
                 urtu++;
             }
             result = urutan;
@@ -177,7 +172,7 @@ public class GuruApp {
             while(res.next()){
                 no = res.getInt("jumlah");
             }
-            result = no*2;
+            result = no*2; // true/false [ ]
             con.close();
             statement.close();
         } catch (Exception e) {
@@ -199,18 +194,18 @@ public class GuruApp {
             ResultSet dump = null;
             if(status.equals("false")){
                 dump = statement.executeQuery("select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,"+
-                " t.urutan, t.id_mapel, t.category, s.nama "
+                " t.urutan, t.id_mapel, t.category "
                 +"from status_tugas as st"+
-                " join tugas t on st.id_tugas = t.id_tugas join siswa s on t.category = s.category "+  
-                "where s.category = '"+kategori+"' and t.id_mapel='"+
-                GuruHomeView.getIdMapelByGuru(username)+"' and is_kerjakan = 'false' and urutan = "+urutan);
+                " join tugas t on st.id_tugas = t.id_tugas "+  
+                "where t.category = '"+kategori+"' and t.id_mapel='"+
+                GuruHomeView.getIdMapelByGuru(username)+"' and st.is_kerjakan = 'false' and t.urutan = "+urutan);
             } else{
                 dump = statement.executeQuery("select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,"+
-                " t.urutan, t.id_mapel, t.category, s.nama "
+                " t.urutan, t.id_mapel, t.category "
                 +"from status_tugas as st"+
-                " join tugas t on st.id_tugas = t.id_tugas join siswa s on t.category = s.category "+  
-                "where s.category = '"+kategori+"' and t.id_mapel='"+
-                GuruHomeView.getIdMapelByGuru(username)+"' and is_kerjakan = 'true' and urutan = "+urutan);
+                " join tugas t on st.id_tugas = t.id_tugas  "+  
+                "where t.category = '"+kategori+"' and t.id_mapel='"+
+                GuruHomeView.getIdMapelByGuru(username)+"' and st.is_kerjakan = 'true' and t.urutan = "+urutan);
             }
             
             var no = 0;
@@ -237,7 +232,7 @@ public class GuruApp {
             ResultSet res = statement.executeQuery("select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,"+
             " t.urutan, t.id_mapel, t.category, s.nama "
             +"from status_tugas as st"+
-            " join tugas t on st.id_tugas = t.id_tugas join siswa s on t.category = s.category "+  
+            " join tugas t on st.id_tugas = t.id_tugas join siswa s on st.nis = cast(s.nis as varchar(15)) "+  
             "where s.category = '"+kategori+"' and t.id_mapel='"+
             GuruHomeView.getIdMapelByGuru(username)+"' and urutan = "+urutan);
             PrettyTable prettyTable = new PrettyTable("No","NIS","Nama","Status Pengerjaan");
@@ -247,8 +242,13 @@ public class GuruApp {
             var urutanx= 0;
             var namaTugas = "";
             while(res.next()){
-                prettyTable.addRow(String.valueOf(no),res.getString("nis"),res.getString("nama"),
-                res.getString("is_kerjakan").equals("true") ? "Selesai" : "Belum dikerjakan");
+                if ((!"true".equals(res.getString("is_kerjakan"))) && (!"false".equals(res.getString("is_kerjakan")))){
+                    prettyTable.addRow(String.valueOf(no),res.getString("nis"),res.getString("nama"),
+                res.getString("is_kerjakan"));
+                } else{
+                    prettyTable.addRow(String.valueOf(no),res.getString("nis"),res.getString("nama"),
+                    res.getString("is_kerjakan").equals("true") ? "Selesai" : "Belum dikerjakan");
+                }
                 category = res.getString("category");
                 urutanx = res.getInt("urutan");
                 namaTugas = res.getString("nama_tugas");
@@ -264,52 +264,57 @@ public class GuruApp {
             System.out.println(prettyTable);
             System.out.println("\n[0] Kembali");
             System.out.println("------------------------");
-            var siswa = ValidationUtil.inputInteger("Pilih Siswa :: ", no-1);
-            if
-            (getIsKerjakanSiswa(nis[siswa-1], kategori, urutan).equals("false")){
-                System.out.println("<< Tidak dapat memberikan nilai! Tugas belum dikerjakan! >>");
-                System.out.print("\nKlik enter untuk ulangi! ");
-                new ConfirmUtil();
-                if (ConfirmUtil.getInput().equalsIgnoreCase("0")){
-                    ClearScreenUtil.ClearConsole();
-                    GuruHomeView.guruHome(nama, username);
-                } else{
-                    ClearScreenUtil.ClearConsole();
-                    viewSiswa(kategori, urutan);
-                }
-            } else if
-            (getIsKerjakanSiswa(nis[siswa-1], kategori, urutan).equals("true")){
-                System.out.println("------------------------");
-                var nilai = ValidationUtil.inputInteger("Masukkan Nilai : ",100);
-                ValidationUtil a = new ValidationUtil();
-                System.out.println("------------------------");
-                var beri = a.inputYesNo("Yakin untuk memberikan nilai? (Y/t) ");
-                if(beri.equals("y")){
-                    changeNilaiSiswa(nis[siswa-1], kategori, urutan, nilai);
-                } else{
-                    System.out.println("Pemberian nilai dibatalkan! Klik enter untuk kembali! ");
+            var siswa = ValidationUtil.inputInteger("Pilih Siswa :: ", no-1,0);
+            if(siswa != 0){
+                if
+                (getIsKerjakanSiswa(nis[siswa-1], kategori, urutan).equals("false")){
+                    System.out.println("<< Tidak dapat memberikan nilai! Tugas belum dikerjakan! >>");
+                    System.out.print("\nKlik enter untuk ulangi! ");
                     new ConfirmUtil();
-                    ClearScreenUtil.ClearConsole();
-                    GuruHomeView.guruHome(nama, username);
+                    if (ConfirmUtil.getInput().equalsIgnoreCase("0")){
+                        ClearScreenUtil.ClearConsole();
+                        GuruHomeView.guruHome(nama, username);
+                    } else{
+                        ClearScreenUtil.ClearConsole();
+                        viewSiswa(kategori, urutan);
+                    }
+                } else if
+                (getIsKerjakanSiswa(nis[siswa-1], kategori, urutan).equals("true")){
+                    System.out.println("------------------------");
+                    var nilai = ValidationUtil.inputInteger("Masukkan Nilai : ",100);
+                    ValidationUtil a = new ValidationUtil();
+                    System.out.println("------------------------");
+                    var beri = a.inputYesNo("Yakin untuk memberikan nilai? (Y/t) ");
+                    if(beri.equals("y")){
+                        changeNilaiSiswa(nis[siswa-1], kategori, urutan, nilai);
+                    } else{
+                        System.out.println("Pemberian nilai dibatalkan! Klik enter untuk kembali! ");
+                        new ConfirmUtil();
+                        ClearScreenUtil.ClearConsole();
+                        GuruHomeView.guruHome(nama, username);
+                    }
+                } else{
+                    ValidationUtil a = new ValidationUtil();
+                    var nilai = a.inputYesNo(
+                        "Siswa telah diberikan nilai sebelumnya!"+
+                    "Yakin untuk merubah nilai? (Y/t) ");
+                    if (nilai.equals("y")){
+                        System.out.println("--------------------");
+                        var b = ValidationUtil.inputInteger("Masukkan nilai : ",100);
+                        changeNilaiSiswa(nis[siswa-1], kategori, urutan, b);
+                        System.out.println("--------------------");
+                        System.out.println("\nPerubahan berhasil! Klik enter untuk kembali! ");
+                        ClearScreenUtil.ClearConsole();
+                        GuruHomeView.guruHome(nama, username);
+                    } else{
+                        System.out.println("\nPerubahan dibatalkan! Klik enter untuk kembali! ");
+                        ClearScreenUtil.ClearConsole();
+                        GuruHomeView.guruHome(nama, username);
+                    }
                 }
             } else{
-                ValidationUtil a = new ValidationUtil();
-                var nilai = a.inputYesNo(
-                    "Siswa telah diberikan nilai sebelumnya!"+
-                "Yakin untuk merubah nilai? (Y/t) ");
-                if (nilai.equals("y")){
-                    System.out.println("--------------------");
-                    var b = ValidationUtil.inputInteger("Masukkan nilai : ",100);
-                    changeNilaiSiswa(nis[siswa-1], kategori, urutan, b);
-                    System.out.println("--------------------");
-                    System.out.println("\nPerubahan berhasil! Klik enter untuk kembali! ");
-                    ClearScreenUtil.ClearConsole();
-                    GuruHomeView.guruHome(nama, username);
-                } else{
-                    System.out.println("\nPerubahan dibatalkan! Klik enter untuk kembali! ");
-                    ClearScreenUtil.ClearConsole();
-                    GuruHomeView.guruHome(nama, username);
-                }
+                ClearScreenUtil.ClearConsole();
+                GuruHomeView.guruHome(nama, username);
             }
             con.close();
             statement.close();
@@ -386,7 +391,7 @@ public class GuruApp {
             java.sql.PreparedStatement statement = con.prepareStatement("UPDATE status_tugas SET "+
             "id_tugas='"+getIdTugas(nis, kategori, urutan)+
             "', nis='"+nis+"', is_kerjakan ="+nilai+
-            " WHERE id_tugas='"+getIdTugas(nis, kategori, urutan)+"'");
+            " WHERE id_tugas='"+getIdTugas(nis, kategori, urutan)+"' and nis='"+nis+"'");
 
             statement.executeUpdate();
 

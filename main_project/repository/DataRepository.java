@@ -174,7 +174,7 @@ public abstract class DataRepository {
             } else{
                 System.out.print("\nTekan enter untuk ke halaman utama!");
                 new ConfirmUtil();
-                if (aktor.toLowerCase().equals("guru")){
+                if (aktor.equalsIgnoreCase("guru")){
                     GuruHomeView.guruHome(GuruRepoImpl.getNamaGuru(username),username);
                 } else{
                     new SiswaHomeView(SiswaRepoImpl.getNamaSiswa(username),username); // ngambil nama dari siswa yang login

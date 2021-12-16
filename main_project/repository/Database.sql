@@ -47,3 +47,27 @@ join kelas_object as kl on s.category = kl.category
 where st.is_kerjakan != 'false' and st.is_kerjakan != 'true'
 group by s.nis, s.nama, kl.tingkat, kl.jurusan, kl.category order by avg desc
  
+select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,
+              	t.urutan, t.id_mapel, t.category
+                from status_tugas as st
+                join tugas as t on st.id_tugas = t.id_tugas 
+                where t.category = '10-IPS-1' and t.id_mapel='PAI-05'
+                and st.is_kerjakan = 'false' and t.urutan = 1
+				
+select st.id_tugas, t.nama_tugas,
+            t.urutan, t.id_mapel, t.category
+            from tugas as t
+            join status_tugas as st on st.id_tugas = t.id_tugas 
+            where t.category = '10-IPS-1' and t.id_mapel='PAI-05'
+			
+SELECT * from tugas where category = '10-IPS-1' and id_mapel = 'PAI-05'
+			
+select count(*) as jumlah from tugas where id_mapel='PAI-05' and category='10-IPS-1'
+
+-- UNTUK JOIN, HARUS PK DAN FK, GA BOLEH FK DAN FK
+select st.id_tugas, st.nis, st.is_kerjakan, t.nama_tugas,
+             t.urutan, t.id_mapel, t.category, s.nama 
+            from status_tugas as st
+            join tugas t on st.id_tugas = t.id_tugas 
+			join siswa s on st.nis = cast(s.nis as varchar(15)) 
+            where t.category = '10-IPS-1' and t.id_mapel='PAI-05' and urutan = 1
