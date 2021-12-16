@@ -15,6 +15,7 @@ import com.javaoop.tugas.smt_3.project_akhir.main_project.util.ClearScreenUtil;
 import com.javaoop.tugas.smt_3.project_akhir.main_project.util.ConfirmUtil;
 import com.javaoop.tugas.smt_3.project_akhir.main_project.util.ValidationUtil;
 import com.javaoop.tugas.smt_3.project_akhir.main_project.view.ApplicationView;
+import com.javaoop.tugas.smt_3.project_akhir.main_project.view.GuruHomeView;
 import com.javaoop.tugas.smt_3.project_akhir.main_project.view.SiswaHomeView;
 
 public class SiswaRepoImpl extends DataRepository implements DatatInteRepo { // IMPLEMENTASI INTERFACE
@@ -77,7 +78,7 @@ public class SiswaRepoImpl extends DataRepository implements DatatInteRepo { // 
                     viewNilai(nama,username);;
                 } else if(inp == 2){
                     ClearScreenUtil.ClearConsole();
-                    rankingSiswa();
+                    rankingSiswa("siswa", nama, username);
                 } else if(inp == 0){
                     ClearScreenUtil.ClearConsole();
                     new SiswaHomeView(nama, username);
@@ -92,7 +93,7 @@ public class SiswaRepoImpl extends DataRepository implements DatatInteRepo { // 
             }
         }
 
-        public static void rankingSiswa(){
+        public static void rankingSiswa(String aktor, String nama, String username){
             try {
                 ClearScreenUtil.ClearConsole();
                 Class.forName("org.postgresql.Driver");
@@ -131,7 +132,11 @@ public class SiswaRepoImpl extends DataRepository implements DatatInteRepo { // 
                 System.out.println("\n--------------------------");
                 System.out.print("Tekan enter untuk kembali! ");
                 new ConfirmUtil();
-                HomeApp.menuSiswa();
+                if(aktor.equalsIgnoreCase("guru")){
+                    GuruHomeView.guruHome(nama, username);;
+                } else{
+                    viewNilai(nama, username);
+                }
                 con.close();
                 statement.close();
             } catch (Exception e) {
